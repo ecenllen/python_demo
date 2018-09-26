@@ -1,3 +1,4 @@
+import pymysql
 import requests
 from bs4 import BeautifulSoup
 
@@ -8,11 +9,31 @@ def download_page(url):
     return r.text
 
 
+def get_conn():
+    """建立数据库连接"""
+    conn = pymysql.connect(host='localhost',
+                                user='root',
+                                password='root',
+                                db='python',
+                                charset='utf8mb4',
+                                cursorclass=pymysql.cursors.DictCursor)
+    return conn
+
+
+def insert(conn, info):
+    """数据写入数据库"""
+    with conn.cursor() as cursor:
+        sql = "INSERT INTO `qiubai` (`page`, `author`, `gender`, `age`, `vote`, `comment`, `content`) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, info)
+    conn.commit()
+
+
 def get_content(html, page):
     output = """第{}页 作者：{} 性别：{} 年龄：{} 点赞：{} 评论：{}\n{}\n------------\n"""
     soup = BeautifulSoup(html, 'html.parser')
     con = soup.find(id='content-left')
     con_list = con.find_all('div', class_="article")
+    conn = get_conn()   # 建立数据库连接  不存数据库 注释此行
     for i in con_list:
         author = i.find('h2').string  # 获取作者名字
         content = i.find('div', class_='content').find('span').get_text()  # 获取内容
@@ -33,7 +54,11 @@ def get_content(html, page):
             gender = ''
             age = ''
 
+        info = [page, author, gender, age, vote, comment, content]
+        insert(conn, tuple(info))
         save_txt(output.format(page, author, gender, age, vote, comment, content))
+
+    conn.close()
 
 
 def save_txt(*args):
@@ -49,6 +74,7 @@ def main():
         url = 'https://qiushibaike.com/text/page/{}'.format(i)
         html = download_page(url)
         get_content(html, i)
+
 
 if __name__ == '__main__':
     main()

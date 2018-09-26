@@ -42,14 +42,16 @@ def get_pic(link, text):
         r = requests.get(pic_link, headers=headers)  # 下载图片，之后保存到文件
         with open('pic/{}/{}'.format(text, pic_link.split('/')[-1]), 'wb') as f:
             f.write(r.content)
-            time.sleep(1)   # 休息一下，不要给网站太大压力，避免被封
+            time.sleep(1)  # 休息一下，不要给网站太大压力，避免被封
 
 
+# 文件夹不存在，则创建
 def create_dir(name):
     if not os.path.exists(name):
         os.makedirs(name)
 
 
+# 耗时操作，下载页面数据，解析成图片数据
 def execute(url):
     page_html = download_page(url)
     get_pic_list(page_html)
@@ -57,13 +59,13 @@ def execute(url):
 
 def main():
     create_dir('pic')
-    queue = [i for i in range(1, 72)]   # 构造 url 链接 页码。
+    queue = [i for i in range(1, 72)]  # 构造 url 链接 页码。
     threads = []
     while len(queue) > 0:
         for thread in threads:
             if not thread.is_alive():
                 threads.remove(thread)
-        while len(threads) < 5 and len(queue) > 0:   # 最大线程数设置为 5
+        while len(threads) < 5 and len(queue) > 0:  # 最大线程数设置为 5
             cur_page = queue.pop(0)
             url = 'http://meizitu.com/a/more_{}.html'.format(cur_page)
             thread = threading.Thread(target=execute, args=(url,))

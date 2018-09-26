@@ -41,4 +41,5 @@ def img_upload(mediaType, name):
     parse_json = json.loads(r.text)
     return parse_json['media_id']
 
+
 get_access_token(app_id, secret)

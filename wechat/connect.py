@@ -47,6 +47,7 @@ class Connect(object):
             resp.body = (xml)
             resp.status = falcon.HTTP_200
 
+
 app = falcon.API()
 connect = Connect()
 app.add_route('/connect', connect)
